@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="es" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Heavy Duty - Mike Mentzer Tracker</title>
+    
+    <!-- iOS Native App Mode Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Heavy Duty">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+
+    <!-- Static High-Res Apple Touch Icon (Gold Gradient + Black Dumbbell SVG Base64) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><defs><radialGradient id='gold' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='%23ffe875'/><stop offset='40%' stop-color='%23e5b324'/><stop offset='80%' stop-color='%23b8860b'/><stop offset='100%' stop-color='%237a5200'/></radialGradient></defs><rect width='180' height='180' rx='40' fill='url(%23gold)'/><rect x='45' y='84' width='90' height='12' rx='3' fill='%230a0a0a'/><rect x='26' y='81' width='6' height='18' rx='2' fill='%230a0a0a'/><rect x='33' y='62' width='10' height='56' rx='4' fill='%230a0a0a'/><rect x='45' y='52' width='10' height='76' rx='4' fill='%230a0a0a'/><rect x='57' y='42' width='11' height='96' rx='5' fill='%230a0a0a'/><rect x='112' y='42' width='11' height='96' rx='5' fill='%230a0a0a'/><rect x='125' y='52' width='10' height='76' rx='4' fill='%230a0a0a'/><rect x='137' y='62' width='10' height='56' rx='4' fill='%230a0a0a'/><rect x='148' y='81' width='6' height='18' rx='2' fill='%230a0a0a'/></svg>">
+    
+    <!-- Dynamic PWA Manifest Injection -->
+    <script>
+        (function injectPWAManifest() {
+            const iconSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><defs><radialGradient id='gold' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='%23ffe875'/><stop offset='40%' stop-color='%23e5b324'/><stop offset='80%' stop-color='%23b8860b'/><stop offset='100%' stop-color='%237a5200'/></radialGradient></defs><rect width='180' height='180' rx='40' fill='url(%23gold)'/><rect x='45' y='84' width='90' height='12' fill='%230a0a0a'/><rect x='33' y='62' width='10' height='56' rx='4' fill='%230a0a0a'/><rect x='45' y='52' width='10' height='76' rx='4' fill='%230a0a0a'/><rect x='57' y='42' width='11' height='96' rx='5' fill='%230a0a0a'/><rect x='112' y='42' width='11' height='96' rx='5' fill='%230a0a0a'/><rect x='125' y='52' width='10' height='76' rx='4' fill='%230a0a0a'/><rect x='137' y='62' width='10' height='56' rx='4' fill='%230a0a0a'/></svg>";
+            const manifest = {
+                name: "Heavy Duty Mentzer",
+                short_name: "Heavy Duty",
+                start_url: window.location.href,
+                display: "standalone",
+                background_color: "#000000",
+                theme_color: "#000000",
+                icons: [{ src: iconSvg, sizes: "180x180", type: "image/svg+xml" }]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestUrl;
+            document.head.appendChild(link);
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ios: {
+                            bg: '#000000',
+                            card: '#1c1c1e',
+                            cardLight: '#2c2c2e',
+                            border: '#38383a',
+                            accent: '#ff453a', // Red Mentzer Intensity
+                            gold: '#ffd60a',
+                            blue: '#0a84ff',
+                            green: '#30d158',
+                            subtext: '#8e8e93'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'Helvetica Neue', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Touch and iOS dynamic feel tweaks */
+        body {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .safe-area-top { padding-top: env(safe-area-inset-top, 20px); }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        
+        /* Custom scrollbar hiding for clean app feel */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .glass-header {
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .glass-tabbar {
+            background: rgba(28, 28, 30, 0.92);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+        }
+        .cadence-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.03); }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans overflow-hidden bg-black text-white">
+
+    <!-- iOS Install Banner (Visible only when opened inside Safari web browser) -->
+    <div id="ios-install-banner" class="hidden bg-gradient-to-r from-ios-gold to-yellow-600 text-black px-4 py-2 text-xs font-bold flex justify-between items-center shadow-lg z-50">
+        <div class="flex items-center space-x-2">
+            <i data-lucide="share" class="w-4 h-4"></i>
+            <span>Para ver como App nativa: Toca <strong>Compartir</strong> > <strong>Añadir a pantalla de inicio</strong></span>
+        </div>
+        <button onclick="document.getElementById('ios-install-banner').classList.add('hidden')" class="p-1">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <!-- Top App Bar Header -->
+    <header class="glass-header sticky top-0 z-30 pt-10 pb-3 px-4 border-b border-ios-border/40 flex justify-between items-center">
+        <div>
+            <span class="text-xs font-semibold tracking-wider uppercase text-ios-accent">Mike Mentzer High Intensity</span>
+            <h1 id="header-title" class="text-2xl font-bold tracking-tight">Heavy Duty</h1>
+        </div>
+        <button id="btn-recovery-status" onclick="openRecoveryModal()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-ios-cardLight border border-ios-border rounded-full text-xs font-medium text-ios-gold">
+            <i data-lucide="battery-charging" class="w-4 h-4"></i>
+            <span id="recovery-text">Recuperando (48h)</span>
+        </button>
+    </header>
+
+    <!-- Main View Container -->
+    <main id="app-container" class="flex-1 overflow-y-auto no-scrollbar pb-24 px-4 pt-4 space-y-6">
+
+        <!-- TAB 1: WORKOUT / SESSION IN PROGRESS -->
+        <section id="tab-workout" class="tab-content space-y-5">
+            <!-- Active Workout Card or Start Banner -->
+            <div id="active-workout-card" class="bg-gradient-to-br from-ios-card to-ios-cardLight border border-ios-border/60 rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-ios-accent/10 rounded-full blur-2xl"></div>
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <span id="workout-session-subtitle" class="text-xs font-semibold uppercase tracking-wider text-ios-subtext">Sesión Sugerida</span>
+                        <h2 id="workout-session-title" class="text-xl font-bold text-white">Rutina Ideal Mentzer - Día 1</h2>
+                        <p class="text-xs text-ios-subtext mt-0.5">Pecho & Espalda (Pre-Agotamiento + Fallo)</p>
+                    </div>
+                    <span class="px-2.5 py-1 bg-ios-accent/20 text-ios-accent border border-ios-accent/30 text-[10px] font-extrabold rounded-full tracking-wide uppercase">Alta Intensidad</span>
+                </div>
+
+                <!-- Last Performance Alert -->
+                <div class="bg-black/40 rounded-2xl p-3 border border-ios-border/40 mb-4 text-xs text-gray-300 flex items-center space-x-3">
+                    <i data-lucide="zap" class="w-5 h-5 text-ios-gold flex-shrink-0"></i>
+                    <div>
+                        <p class="font-medium text-white">Regla de Oro Mentzer:</p>
+                        <p class="text-[11px] text-ios-subtext">Una sola serie de trabajo real por ejercicio llevada al fallo absoluto. Registra cadencia 4-2-2.</p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button id="btn-start-session" onclick="startWorkoutSession()" class="flex-1 bg-ios-accent hover:bg-red-600 active:scale-95 transition-all py-3.5 rounded-2xl font-bold text-sm shadow-lg flex items-center justify-center space-x-2">
+                        <i data-lucide="play" class="w-4 h-4 fill-white"></i>
+                        <span>Iniciar Entrenamiento</span>
+                    </button>
+                    <button onclick="switchTab('tab-routines')" class="px-4 bg-ios-cardLight border border-ios-border hover:bg-ios-border/50 rounded-2xl text-xs font-semibold">
+                        Cambiar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rest Timer / Recovery Widget -->
+            <div class="bg-ios-card rounded-2xl p-4 border border-ios-border/50 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-ios-blue/15 text-ios-blue flex items-center justify-center font-bold">
+                        <i data-lucide="timer" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-ios-subtext">Tiempo de Descanso Activo</p>
+                        <p id="timer-display" class="text-xl font-mono font-bold tracking-tight text-white">00:00</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="toggleRestTimer()" id="btn-timer-toggle" class="p-2.5 bg-ios-cardLight border border-ios-border rounded-xl text-xs font-semibold hover:bg-ios-border/60">
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="resetRestTimer()" class="p-2.5 bg-ios-cardLight border border-ios-border rounded-xl text-xs font-semibold text-ios-subtext hover:bg-ios-border/60">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interactive Cadence Metronome Widget -->
+            <div class="bg-ios-card rounded-3xl p-5 border border-ios-border/50">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                            <i data-lucide="activity" class="w-4 h-4 text-ios-accent"></i> Guía Cadencia Heavy Duty (4-2-2-1)
+                        </h3>
+                        <p class="text-[11px] text-ios-subtext">Control del TUT (Tiempo Bajo Tensión)</p>
+                    </div>
+                    <button id="btn-cadence-toggle" onclick="toggleCadenceGuide()" class="px-3 py-1 bg-ios-accent/20 text-ios-accent border border-ios-accent/40 rounded-full text-xs font-semibold">
+                        Iniciar Guía
+                    </button>
+                </div>
+
+                <div id="cadence-box" class="hidden bg-black/60 rounded-2xl p-4 border border-ios-border/40 text-center space-y-3">
+                    <div class="text-2xl font-black text-ios-accent uppercase tracking-wider transition-all" id="cadence-phase">
+                        LISTO
+                    </div>
+                    <div class="text-4xl font-mono font-extrabold text-white" id="cadence-counter">
+                        4
+                    </div>
+                    <p id="cadence-desc" class="text-xs text-ios-subtext">Fase Negativa (Excéntrica) - 4 Segundos lentos</p>
+                    <div class="w-full bg-ios-cardLight h-2 rounded-full overflow-hidden">
+                        <div id="cadence-bar" class="bg-ios-accent h-full w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercises Preview / Execution Panel -->
+            <div id="session-exercise-list" class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-ios-subtext">Ejercicios de la Sesión</h3>
+                    <span class="text-xs text-ios-subtext">1 Serie Real / Ejercicio</span>
+                </div>
+                <!-- Dynamic Loaded Exercises Go Here -->
+            </div>
+        </section>
+
+        <!-- TAB 2: ROUTINES -->
+        <section id="tab-routines" class="tab-content space-y-4 hidden">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">Rutinas Heavy Duty</h2>
+                    <p class="text-xs text-ios-subtext">Diseñadas para máxima intensidad y descanso óptimo</p>
+                </div>
+                <button onclick="openRoutineEditor()" class="p-2 bg-ios-accent rounded-xl text-white text-xs font-semibold flex items-center gap-1 shadow-md">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Crear
+                </button>
+            </div>
+
+            <!-- Built-in Routine Cards -->
+            <div id="routines-container" class="space-y-4">
+                <!-- Routine items inserted dynamically -->
+            </div>
+        </section>
+
+        <!-- TAB 3: EXERCISES & TECHNICAL GUIDE -->
+        <section id="tab-exercises" class="tab-content space-y-4 hidden">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">Librería de Ejercicios</h2>
+                    <p class="text-xs text-ios-subtext">Ejecución biomecánica estricta Mentzer</p>
+                </div>
+            </div>
+
+            <!-- Search & Filter -->
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-ios-subtext"></i>
+                <input type="text" id="exercise-search" onkeyup="filterExercises()" placeholder="Buscar por ejercicio o músculo..." class="w-full bg-ios-card border border-ios-border rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-ios-subtext focus:outline-none focus:border-ios-accent">
+            </div>
+
+            <div id="exercise-list-container" class="space-y-3">
+                <!-- Exercises items inserted dynamically -->
+            </div>
+        </section>
+
+        <!-- TAB 4: STATS & PROGRESS OVERLOAD -->
+        <section id="tab-stats" class="tab-content space-y-5 hidden">
+            <div>
+                <h2 class="text-xl font-bold">Sobrecarga Progresiva</h2>
+                <p class="text-xs text-ios-subtext">Métricas del principio de adaptación Heavy Duty</p>
+            </div>
+
+            <!-- Stats KPI Grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-ios-card p-4 rounded-2xl border border-ios-border/60">
+                    <span class="text-xs font-medium text-ios-subtext">Total Entrenamientos</span>
+                    <p id="kpi-workouts" class="text-2xl font-black mt-1 text-white">0</p>
+                    <span class="text-[10px] text-ios-green font-semibold">100% al fallo muscular</span>
+                </div>
+                <div class="bg-ios-card p-4 rounded-2xl border border-ios-border/60">
+                    <span class="text-xs font-medium text-ios-subtext">Progreso Fuerza Global</span>
+                    <p id="kpi-progress" class="text-2xl font-black mt-1 text-ios-green">+0%</p>
+                    <span class="text-[10px] text-ios-subtext">Basado en reps/peso</span>
+                </div>
+            </div>
+
+            <!-- Exercise Selection Chart Selector -->
+            <div class="bg-ios-card p-4 rounded-3xl border border-ios-border/60 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-white">Evolución por Ejercicio</h3>
+                    <select id="chart-exercise-select" onchange="updateProgressChart()" class="bg-ios-cardLight border border-ios-border rounded-xl text-xs px-2.5 py-1.5 text-white focus:outline-none">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="h-56 w-full">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Workout Log History -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-ios-subtext">Historial de Sesiones</h3>
+                <div id="history-logs-container" class="space-y-2">
+                    <!-- Logs inserted dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: SETTINGS & METRICS -->
+        <section id="tab-settings" class="tab-content space-y-4 hidden">
+            <div>
+                <h2 class="text-xl font-bold">Ajustes & Principios</h2>
+                <p class="text-xs text-ios-subtext">Personalización de tu sistema Heavy Duty</p>
+            </div>
+
+            <div class="bg-ios-card rounded-2xl divide-y divide-ios-border/40 border border-ios-border/60">
+                <div class="p-4 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium">Unidad de Peso</p>
+                        <p class="text-xs text-ios-subtext">Selecciona Kilogramos o Libras</p>
+                    </div>
+                    <select id="setting-unit" onchange="saveSettings()" class="bg-ios-cardLight border border-ios-border rounded-xl text-xs px-3 py-1.5 text-white">
+                        <option value="kg">Kilogramos (kg)</option>
+                        <option value="lbs">Libras (lbs)</option>
+                    </select>
+                </div>
+                <div class="p-4 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium">Horas de Descanso Estándar</p>
+                        <p class="text-xs text-ios-subtext">Mentzer aconseja 48h a 96h mínimo</p>
+                    </div>
+                    <select id="setting-recovery-hours" onchange="saveSettings()" class="bg-ios-cardLight border border-ios-border rounded-xl text-xs px-3 py-1.5 text-white">
+                        <option value="48">48 horas</option>
+                        <option value="72" selected>72 horas</option>
+                        <option value="96">96 horas</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Mentzer Educational Cards -->
+            <div class="bg-gradient-to-r from-ios-cardLight to-ios-card p-5 rounded-3xl border border-ios-border/60 space-y-2">
+                <div class="flex items-center space-x-2 text-ios-accent">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    <h3 class="text-sm font-bold">Filosofía Heavy Duty resumen</h3>
+                </div>
+                <p class="text-xs text-gray-300 leading-relaxed">
+                    1. <strong>Intensidad:</strong> El estímulo del crecimiento muscular requiere esfuerzo máximo (fallo positivo estricto).<br>
+                    2. <strong>Bajo Volumen:</strong> Solo 1 serie efectiva de trabajo tras un breve calentamiento.<br>
+                    3. <strong>Frecuencia Infrecuente:</strong> El músculo crece durante el descanso, no en el gimnasio. Permite la supercompensación.
+                </p>
+            </div>
+
+            <button onclick="clearAllData()" class="w-full py-3 bg-red-950/40 border border-red-800/60 text-ios-accent rounded-2xl text-xs font-bold hover:bg-red-900/50 transition">
+                Restablecer Datos Locales
+            </button>
+        </section>
+
+    </main>
+
+    <!-- EXERCISE TECHNICAL DETAILS MODAL -->
+    <div id="exercise-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+        <div class="bg-ios-card w-full sm:max-w-lg max-h-[90vh] rounded-t-3xl sm:rounded-3xl border border-ios-border flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-ios-border/60 flex justify-between items-center glass-header">
+                <div>
+                    <span id="modal-ex-category" class="text-[10px] font-bold uppercase tracking-wider text-ios-accent">Pecho</span>
+                    <h3 id="modal-ex-title" class="text-lg font-bold text-white">Pullover con Mancuerna / Máquina</h3>
+                </div>
+                <button onclick="closeExerciseModal()" class="p-2 text-ios-subtext hover:text-white rounded-full bg-ios-cardLight">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 overflow-y-auto space-y-5">
+                <!-- Dynamic Anatomical SVG Diagram -->
+                <div class="bg-black/60 rounded-2xl p-4 border border-ios-border/40 flex flex-col items-center justify-center">
+                    <h4 class="text-xs font-semibold text-ios-subtext mb-2 uppercase tracking-wider">Diagrama de Activación Anatómica</h4>
+                    <div id="anatomical-diagram-container" class="w-full h-48 flex items-center justify-center">
+                        <!-- SVG graphic will be injected -->
+                    </div>
+                    <div class="flex space-x-4 mt-3 text-xs">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-3 h-3 rounded-full bg-ios-accent inline-block"></span>
+                            <span class="text-gray-300">Primario</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-3 h-3 rounded-full bg-ios-gold inline-block"></span>
+                            <span class="text-gray-300">Secundario</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step by step technique -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-ios-green"></i> Ejecución Técnica Paso a Paso
+                    </h4>
+                    <ul id="modal-ex-steps" class="space-y-1.5 text-xs text-gray-300 list-disc pl-4">
+                        <!-- Steps injected -->
+                    </ul>
+                </div>
+
+                <!-- Mentzer Intensity Tips -->
+                <div class="bg-ios-cardLight/70 p-4 rounded-2xl border border-ios-border/60 space-y-2">
+                    <h4 class="text-xs font-bold text-ios-gold uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="flame" class="w-4 h-4"></i> Consejo de Alta Intensidad (Mentzer)
+                    </h4>
+                    <p id="modal-ex-mentzer-tip" class="text-xs text-gray-300 italic">
+                        "Mantén la contracción máxima durante 2 segundos completos antes de iniciar una fase negativa de 4 segundos sin impulso."
+                    </p>
+                </div>
+
+                <!-- Common mistakes -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold text-ios-accent uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Errores Frecuentes a Evitar
+                    </h4>
+                    <ul id="modal-ex-mistakes" class="space-y-1 text-xs text-gray-300 list-disc pl-4">
+                        <!-- Mistakes injected -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG SET ENTRY MODAL -->
+    <div id="log-set-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-ios-card w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-ios-border p-5 space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-xs text-ios-accent font-semibold uppercase">Registrar Serie Única de Fallo</span>
+                    <h3 id="log-modal-ex-name" class="text-lg font-bold text-white">Nombre Ejercicio</h3>
+                </div>
+                <button onclick="closeLogModal()" class="p-2 text-ios-subtext rounded-full bg-ios-cardLight">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Pre-agotamiento indicator if applicable -->
+            <div id="preexhaust-badge" class="hidden bg-ios-gold/15 text-ios-gold border border-ios-gold/30 p-2.5 rounded-xl text-xs flex items-center space-x-2">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span><strong>Pre-Agotamiento:</strong> Realiza este ejercicio de inmediato sin descanso previo.</span>
+            </div>
+
+            <form id="log-set-form" onsubmit="saveLoggedSet(event)" class="space-y-4">
+                <input type="hidden" id="log-exercise-id">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-ios-subtext mb-1">Peso (<span class="unit-label">kg</span>)</label>
+                        <input type="number" step="0.5" id="log-weight" required placeholder="0.0" class="w-full bg-black border border-ios-border rounded-xl px-3 py-3 text-lg font-mono font-bold text-white focus:border-ios-accent focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-ios-subtext mb-1">Reps al Fallo Positivo</label>
+                        <input type="number" id="log-reps" required placeholder="6-10" class="w-full bg-black border border-ios-border rounded-xl px-3 py-3 text-lg font-mono font-bold text-white focus:border-ios-accent focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-ios-subtext mb-1">Reps Forzadas</label>
+                        <input type="number" id="log-forced" value="0" min="0" class="w-full bg-black border border-ios-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-ios-subtext mb-1">Reps Negativas Extra</label>
+                        <input type="number" id="log-negatives" value="0" min="0" class="w-full bg-black border border-ios-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-ios-subtext mb-1">Cadencia Utilizada (Ej: 4-2-2)</label>
+                    <input type="text" id="log-cadence" value="4-2-2" class="w-full bg-black border border-ios-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-ios-subtext mb-1">Sensación / Notas de Intensidad</label>
+                    <textarea id="log-notes" rows="2" placeholder="Ej. Llegué al fallo total en la rep 7. Quemazón intensa." class="w-full bg-black border border-ios-border rounded-xl p-3 text-xs text-white focus:outline-none"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-ios-accent hover:bg-red-600 font-bold py-3.5 rounded-2xl text-sm transition shadow-lg">
+                    Guardar Serie en Historial
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RECOVERY STATUS MODAL -->
+    <div id="recovery-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-ios-card w-full max-w-sm rounded-3xl border border-ios-border p-5 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white">Estado de Recuperación</h3>
+                <button onclick="closeRecoveryModal()" class="p-1.5 text-ios-subtext rounded-full bg-ios-cardLight">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <div class="text-center py-4 space-y-2">
+                <div class="w-16 h-16 bg-ios-gold/20 text-ios-gold rounded-full flex items-center justify-center mx-auto border border-ios-gold/40">
+                    <i data-lucide="battery-charging" class="w-8 h-8"></i>
+                </div>
+                <h4 id="rec-modal-status" class="text-base font-bold text-white">Supercompensación en Curso</h4>
+                <p id="rec-modal-desc" class="text-xs text-ios-subtext leading-relaxed">
+                    Mentzer enfatizaba que entrenar antes de la recuperación completa anula las ganancias. Espera a que la batería esté al 100%.
+                </p>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-ios-subtext">Tiempo transcurrido:</span>
+                    <span id="rec-time-passed" class="font-bold text-white">24h 30m</span>
+                </div>
+                <div class="w-full bg-ios-cardLight h-3 rounded-full overflow-hidden">
+                    <div id="rec-progress-bar" class="bg-ios-gold h-full w-1/2 transition-all"></div>
+                </div>
+            </div>
+
+            <button onclick="closeRecoveryModal()" class="w-full bg-ios-cardLight border border-ios-border py-3 rounded-2xl text-xs font-bold text-white">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- BOTTOM iOS TAB BAR NATIVE NAV -->
+    <nav class="glass-tabbar fixed bottom-0 left-0 right-0 border-t border-ios-border/50 z-40 px-2 pb-5 pt-2">
+        <div class="flex justify-around items-center max-w-md mx-auto">
+            <button onclick="switchTab('tab-workout')" id="nav-tab-workout" class="tab-btn active flex flex-col items-center space-y-1 text-ios-accent">
+                <i data-lucide="flame" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Entrenar</span>
+            </button>
+            <button onclick="switchTab('tab-routines')" id="nav-tab-routines" class="tab-btn flex flex-col items-center space-y-1 text-ios-subtext hover:text-white">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Rutinas</span>
+            </button>
+            <button onclick="switchTab('tab-exercises')" id="nav-tab-exercises" class="tab-btn flex flex-col items-center space-y-1 text-ios-subtext hover:text-white">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Técnica</span>
+            </button>
+            <button onclick="switchTab('tab-stats')" id="nav-tab-stats" class="tab-btn flex flex-col items-center space-y-1 text-ios-subtext hover:text-white">
+                <i data-lucide="line-chart" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Progreso</span>
+            </button>
+            <button onclick="switchTab('tab-settings')" id="nav-tab-settings" class="tab-btn flex flex-col items-center space-y-1 text-ios-subtext hover:text-white">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Ajustes</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // --- DATA MODELS & DATABASE ---
+        const EXERCISES_DB = [
+            {
+                id: 'ex-pullover',
+                name: 'Pullover con Mancuerna / Máquina',
+                muscleGroup: 'Pecho & Espalda (Pre-agotamiento)',
+                primaryMuscle: 'Dorsal Ancho / Pectoral Mayor',
+                secondaryMuscle: 'Tríceps / Serrano',
+                steps: [
+                    'Acuéstate transversalmente sobre el banco o en la máquina específica de Pullover.',
+                    'Sostén el peso extendiendo los brazos hacia atrás por encima de la cabeza.',
+                    'Desciende lentamente el peso sintiendo el estiramiento completo (fase excéntrica de 4s).',
+                    'Contrae los dorsales y pectorales para llevar la carga sobre el pecho sin doblar los codos.'
+                ],
+                mentzerTip: 'Ejercicio estrella del sistema Heavy Duty para pre-agotar el dorsal sin involucrar el bíceps.',
+                mistakes: [
+                    'Doblar excesivamente los codos convirtiéndolo en extensión de tríceps.',
+                    'Usar impulso o rebotar en la posición inferior.',
+                    'Arquear la espalda baja en exceso.'
+                ],
+                svgType: 'upper-pull'
+            },
+            {
+                id: 'ex-pecdeck',
+                name: 'Pec Deck / Aperturas en Contracción',
+                muscleGroup: 'Pecho',
+                primaryMuscle: 'Pectoral Mayor',
+                secondaryMuscle: 'Deltoides Anterior',
+                steps: [
+                    'Ajusta el asiento para que las almohadillas queden a la altura media del pecho.',
+                    'Junta las almohadillas/manijas en el centro manteniendo el pecho erguido.',
+                    'Sostén la contracción máxima durante 2 segundos completos apretando el pecho.',
+                    'Regresa en 4 segundos sintiendo el estiramiento muscular completo.'
+                ],
+                mentzerTip: 'Aislamiento directo para el pecho antes de pasar al press en superserie de pre-agotamiento.',
+                mistakes: [
+                    'No hacer la pausa isométrica en el centro.',
+                    'Impulsarse con los hombros proyectados hacia adelante.'
+                ],
+                svgType: 'chest-fly'
+            },
+            {
+                id: 'ex-incline-press',
+                name: 'Press Inclinado con Barra o Máquina',
+                muscleGroup: 'Pecho',
+                primaryMuscle: 'Pectoral Superior',
+                secondaryMuscle: 'Deltoides / Tríceps',
+                steps: [
+                    'Si realizas la superserie de pre-agotamiento, ve de inmediato tras el Pec Deck/Pullover.',
+                    'Baja la barra/manijas lentamente en 4 segundos hasta rozar el pecho alto.',
+                    'Presiona de forma controlada sin bloquear brusco los codos al final.'
+                ],
+                mentzerTip: 'El pecho ya estará pre-agotado, permitiendo llevarlo al fallo real antes de que los tríceps cedan.',
+                mistakes: ['Bloquear los codos arriba perdiendo tensión', 'Bajar demasiado rápido.'],
+                svgType: 'chest-press'
+            },
+            {
+                id: 'ex-lat-pulldown',
+                name: 'Jalón al Pecho Agarre Estrecho Invertido',
+                muscleGroup: 'Espalda',
+                primaryMuscle: 'Dorsal Ancho (Porción inferior)',
+                secondaryMuscle: 'Bíceps / Branquial',
+                steps: [
+                    'Utiliza un agarre supinado (palmas mirando hacia ti) al ancho de hombros.',
+                    'Tracciona llevando la barra hacia la parte superior del pecho.',
+                    'Pausa 2 segundos apretando los dorsales abajo.',
+                    'Extiende de manera muy lenta en 4 segundos.'
+                ],
+                mentzerTip: 'Mentzer recomendaba el agarre supinado porque el bíceps está en la posición anatómicamente más fuerte para empujar el dorsal al verdadero fallo.',
+                mistakes: ['Balancear el torso hacia atrás', 'Usar peso excesivo que no permite la pausa abajo.'],
+                svgType: 'back-pull'
+            },
+            {
+                id: 'ex-deadlift',
+                name: 'Peso Muerto',
+                muscleGroup: 'Espalda & Cadena Posterior',
+                primaryMuscle: 'Erectores Espinales / Glúteos',
+                secondaryMuscle: 'Isquiotibiales / Antebrazos',
+                steps: [
+                    'Posición de pies al ancho de caderas, agarre firme de la barra.',
+                    'Mantén la columna neutra y levanta extendiendo caderas y rodillas simultáneamente.',
+                    'Desciende con cadencia controlada manteniendo la barra pegada a las piernas.'
+                ],
+                mentzerTip: 'Solo realiza este ejercicio 1 vez cada 2-3 semanas por su demanda abrumadora al sistema nervioso central.',
+                mistakes: ['Curvar la espalda lumbar', 'Dar tirones bruscos al arrancar del suelo.'],
+                svgType: 'full-body'
+            },
+            {
+                id: 'ex-leg-extension',
+                name: 'Extensiones de Cuádriceps',
+                muscleGroup: 'Piernas',
+                primaryMuscle: 'Cuádriceps',
+                secondaryMuscle: 'Tendón Rotuliano',
+                steps: [
+                    'Ajusta la máquina para que el eje coincida con la articulación de la rodilla.',
+                    'Extiende las piernas completamente y sostén el pico de contracción 2 segundos.',
+                    'Regresa bajando suavemente en 4 segundos.'
+                ],
+                mentzerTip: 'Excelente para pre-agotar cuádriceps antes de pasar inmediatamente a la Prensa o Sentadilla.',
+                mistakes: ['Usar inercia o balanceo', 'Despegar la cadera del asiento.'],
+                svgType: 'legs'
+            },
+            {
+                id: 'ex-leg-press',
+                name: 'Prensa de Piernas o Sentadilla',
+                muscleGroup: 'Piernas',
+                primaryMuscle: 'Cuádriceps / Glúteos',
+                secondaryMuscle: 'Isquiotibiales',
+                steps: [
+                    'Coloca los pies al ancho de hombros en la plataforma.',
+                    'Desciende lentamente hasta formar un ángulo de 90 grados en rodillas.',
+                    'Empuja con toda la planta del pie de forma continua.'
+                ],
+                mentzerTip: 'Tras la extensión de pierna, este ejercicio llevará las fibras musculares de los muslos al límite absoluto.',
+                mistakes: ['Bloquear las rodillas bruscamente en la extensión', 'Levantar la pelvis del respaldo.'],
+                svgType: 'legs'
+            }
+        ];
+
+        const BUILTIN_ROUTINES = [
+            {
+                id: 'rt-mentzer-ideal',
+                name: 'Rutina Ideal Heavy Duty (Mentzer)',
+                description: 'Split dividido de alta intensidad de 2-3 días. Máxima recuperación entre sesiones (72h-96h).',
+                days: [
+                    {
+                        dayName: 'Día 1: Pecho & Espalda',
+                        exercises: [
+                            { id: 'ex-pecdeck', preExhaustWith: 'ex-incline-press', isPreExhaust: true },
+                            { id: 'ex-incline-press', isPreExhaust: false },
+                            { id: 'ex-pullover', preExhaustWith: 'ex-lat-pulldown', isPreExhaust: true },
+                            { id: 'ex-lat-pulldown', isPreExhaust: false },
+                            { id: 'ex-deadlift', isPreExhaust: false }
+                        ]
+                    },
+                    {
+                        dayName: 'Día 2: Piernas & Abdomen',
+                        exercises: [
+                            { id: 'ex-leg-extension', preExhaustWith: 'ex-leg-press', isPreExhaust: true },
+                            { id: 'ex-leg-press', isPreExhaust: false }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'rt-consolidation',
+                name: 'Rutina de Consolidación (Ultra Requerida)',
+                description: 'Para atletas avanzados o con baja capacidad de recuperación. 2 ejercicios globales por sesión.',
+                days: [
+                    {
+                        dayName: 'Sesión A',
+                        exercises: [
+                            { id: 'ex-deadlift', isPreExhaust: false },
+                            { id: 'ex-lat-pulldown', isPreExhaust: false }
+                        ]
+                    },
+                    {
+                        dayName: 'Sesión B',
+                        exercises: [
+                            { id: 'ex-leg-press', isPreExhaust: false },
+                            { id: 'ex-incline-press', isPreExhaust: false }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // --- APP STATE ---
+        let appState = {
+            settings: {
+                unit: 'kg',
+                recoveryHours: 72
+            },
+            history: [],
+            routines: [...BUILTIN_ROUTINES],
+            lastWorkoutTimestamp: null,
+            activeRoutineId: 'rt-mentzer-ideal',
+            activeDayIndex: 0
+        };
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            loadFromLocalStorage();
+            lucide.createIcons();
+            renderActiveWorkout();
+            renderRoutines();
+            renderExercisesList();
+            populateChartExerciseSelect();
+            updateStatsUI();
+            updateRecoveryStatus();
+
+            // Detect if running inside browser (not standalone) to show installation banner
+            const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+            if (!isStandalone) {
+                document.getElementById('ios-install-banner').classList.remove('hidden');
+            }
+
+            // Set auto update timer for recovery status every minute
+            setInterval(updateRecoveryStatus, 60000);
+        };
+
+        // --- LOCAL STORAGE ---
+        function saveToLocalStorage() {
+            localStorage.setItem('heavy_duty_app_state', JSON.stringify(appState));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('heavy_duty_app_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState = { ...appState, ...parsed };
+                } catch(e) {
+                    console.error("Error loading local state", e);
+                }
+            }
+            // Update unit indicators
+            document.querySelectorAll('.unit-label').forEach(el => el.textContent = appState.settings.unit);
+            document.getElementById('setting-unit').value = appState.settings.unit;
+            document.getElementById('setting-recovery-hours').value = appState.settings.recoveryHours;
+        }
+
+        function saveSettings() {
+            appState.settings.unit = document.getElementById('setting-unit').value;
+            appState.settings.recoveryHours = parseInt(document.getElementById('setting-recovery-hours').value);
+            document.querySelectorAll('.unit-label').forEach(el => el.textContent = appState.settings.unit);
+            saveToLocalStorage();
+        }
+
+        function clearAllData() {
+            if(confirm("¿Estás seguro de restablecer todos los registros e historial de entrenamientos?")) {
+                localStorage.removeItem('heavy_duty_app_state');
+                location.reload();
+            }
+        }
+
+        // --- NAVIGATION TABS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-ios-accent');
+                btn.classList.add('text-ios-subtext');
+            });
+
+            const activeNavBtn = document.getElementById('nav-' + tabId);
+            if(activeNavBtn) {
+                activeNavBtn.classList.add('text-ios-accent');
+                activeNavBtn.classList.remove('text-ios-subtext');
+            }
+
+            // Specific refresh on tabs
+            if(tabId === 'tab-stats') {
+                updateStatsUI();
+            }
+        }
+
+        // --- RECOVERY TIMER / STATUS ---
+        function updateRecoveryStatus() {
+            if (!appState.lastWorkoutTimestamp) {
+                document.getElementById('recovery-text').textContent = 'Listo (100%)';
+                return;
+            }
+
+            const now = Date.now();
+            const elapsedHours = (now - appState.lastWorkoutTimestamp) / (1000 * 60 * 60);
+            const targetHours = appState.settings.recoveryHours;
+
+            const progressPct = Math.min(100, Math.floor((elapsedHours / targetHours) * 100));
+
+            const recoveryBtnText = document.getElementById('recovery-text');
+            if (progressPct >= 100) {
+                recoveryBtnText.textContent = 'Supercompensado (100%)';
+                recoveryBtnText.parentElement.classList.remove('text-ios-gold');
+                recoveryBtnText.parentElement.classList.add('text-ios-green');
+            } else {
+                recoveryBtnText.textContent = `Recuperando (${progressPct}%)`;
+                recoveryBtnText.parentElement.classList.add('text-ios-gold');
+                recoveryBtnText.parentElement.classList.remove('text-ios-green');
+            }
+
+            // Update modal info
+            document.getElementById('rec-time-passed').textContent = `${Math.floor(elapsedHours)}h transcurridas`;
+            document.getElementById('rec-progress-bar').style.width = `${progressPct}%`;
+            if (progressPct >= 100) {
+                document.getElementById('rec-modal-status').textContent = '¡Sistema 100% Recuperado!';
+                document.getElementById('rec-modal-desc').textContent = 'Tu cuerpo ha supercompensado. Es el momento perfecto para aplicar máxima intensidad y superar tus marcas previas.';
+            } else {
+                document.getElementById('rec-modal-status').textContent = 'Fase de Descanso Activo';
+                document.getElementById('rec-modal-desc').textContent = `Mantén el descanso. Mentzer descubrió que el músculo necesita al menos ${targetHours}h para completar el ciclo de síntesis proteica y adaptación.`;
+            }
+        }
+
+        function openRecoveryModal() {
+            updateRecoveryStatus();
+            document.getElementById('recovery-modal').classList.remove('hidden');
+        }
+
+        function closeRecoveryModal() {
+            document.getElementById('recovery-modal').classList.add('hidden');
+        }
+
+        // --- REST TIMER METRONOME ---
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
+
+        function toggleRestTimer() {
+            const btn = document.getElementById('btn-timer-toggle');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i>`;
+            } else {
+                isTimerRunning = true;
+                btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i>`;
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                    const s = String(timerSeconds % 60).padStart(2, '0');
+                    document.getElementById('timer-display').textContent = `${m}:${s}`;
+                }, 1000);
+            }
+            lucide.createIcons();
+        }
+
+        function resetRestTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = 0;
+            document.getElementById('timer-display').textContent = '00:00';
+            document.getElementById('btn-timer-toggle').innerHTML = `<i data-lucide="play" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+        }
+
+        // --- CADENCE GUIDE (4-2-2) METRONOME ---
+        let cadenceInterval = null;
+        let isCadenceRunning = false;
+
+        function toggleCadenceGuide() {
+            const box = document.getElementById('cadence-box');
+            const btn = document.getElementById('btn-cadence-toggle');
+
+            if (isCadenceRunning) {
+                clearInterval(cadenceInterval);
+                isCadenceRunning = false;
+                box.classList.add('hidden');
+                btn.textContent = 'Iniciar Guía';
+            } else {
+                box.classList.remove('hidden');
+                btn.textContent = 'Detener Guía';
+                isCadenceRunning = true;
+                startCadenceLoop();
+            }
+        }
+
+        function startCadenceLoop() {
+            let phase = 0; // 0: Excéntrica (4s), 1: Isométrica (2s), 2: Concéntrica (2s)
+            let counter = 4;
+
+            const phaseEl = document.getElementById('cadence-phase');
+            const countEl = document.getElementById('cadence-counter');
+            const descEl = document.getElementById('cadence-desc');
+            const barEl = document.getElementById('cadence-bar');
+
+            function updateUI() {
+                if (phase === 0) { // 4s negative
+                    phaseEl.textContent = 'BAJADA (EXCÉNTRICA)';
+                    phaseEl.className = 'text-2xl font-black text-ios-blue uppercase tracking-wider';
+                    descEl.textContent = 'Resiste el peso lentamente durante 4 segundos';
+                    countEl.textContent = counter;
+                    barEl.style.width = `${((5 - counter) / 4) * 100}%`;
+                    barEl.className = 'bg-ios-blue h-full transition-all duration-300';
+                } else if (phase === 1) { // 2s pause
+                    phaseEl.textContent = 'PAUSA (ISOMÉTRICA)';
+                    phaseEl.className = 'text-2xl font-black text-ios-gold uppercase tracking-wider';
+                    descEl.textContent = 'Aprieta y mantén el pico de contracción 2s';
+                    countEl.textContent = counter;
+                    barEl.style.width = `${((3 - counter) / 2) * 100}%`;
+                    barEl.className = 'bg-ios-gold h-full transition-all duration-300';
+                } else if (phase === 2) { // 2s positive
+                    phaseEl.textContent = 'SUBIDA (CONCÉNTRICA)';
+                    phaseEl.className = 'text-2xl font-black text-ios-accent uppercase tracking-wider';
+                    descEl.textContent = 'Sube con fuerza controlada sin impulsos 2s';
+                    countEl.textContent = counter;
+                    barEl.style.width = `${((3 - counter) / 2) * 100}%`;
+                    barEl.className = 'bg-ios-accent h-full transition-all duration-300';
+                }
+            }
+
+            updateUI();
+
+            cadenceInterval = setInterval(() => {
+                counter--;
+                if (counter <= 0) {
+                    if (phase === 0) {
+                        phase = 1;
+                        counter = 2;
+                    } else if (phase === 1) {
+                        phase = 2;
+                        counter = 2;
+                    } else if (phase === 2) {
+                        phase = 0;
+                        counter = 4;
+                    }
+                }
+                updateUI();
+            }, 1000);
+        }
+
+        // --- RENDER ACTIVE WORKOUT SESSION ---
+        function renderActiveWorkout() {
+            const routine = appState.routines.find(r => r.id === appState.activeRoutineId) || appState.routines[0];
+            const currentDay = routine.days[appState.activeDayIndex % routine.days.length];
+
+            document.getElementById('workout-session-title').textContent = `${routine.name}`;
+            document.getElementById('workout-session-subtitle').textContent = currentDay.dayName;
+
+            const container = document.getElementById('session-exercise-list');
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-ios-subtext">Secuencia de Ejercicios (${currentDay.dayName})</h3>
+                    <span class="text-[10px] bg-ios-cardLight border border-ios-border px-2 py-0.5 rounded-full text-ios-subtext">Fallo Único Estricto</span>
+                </div>
+            `;
+
+            currentDay.exercises.forEach((exRef, index) => {
+                const ex = EXERCISES_DB.find(e => e.id === exRef.id) || { name: exRef.id, muscleGroup: '' };
+                const lastLog = getLastLogForExercise(exRef.id);
+
+                const itemHtml = `
+                    <div class="bg-ios-card border border-ios-border/60 rounded-2xl p-4 flex justify-between items-center space-x-3">
+                        <div class="space-y-1 flex-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-5 h-5 rounded-full bg-ios-cardLight text-ios-subtext font-mono text-xs flex items-center justify-center font-bold">${index + 1}</span>
+                                <h4 class="text-sm font-bold text-white">${ex.name}</h4>
+                            </div>
+                            <p class="text-xs text-ios-subtext">${ex.muscleGroup || ''}</p>
+                            
+                            ${exRef.isPreExhaust ? `
+                                <span class="inline-block mt-1 text-[10px] font-bold text-ios-gold bg-ios-gold/10 border border-ios-gold/30 px-2 py-0.5 rounded-md">
+                                    ⚡ Pre-Agotamiento (Ir rápido al siguiente)
+                                </span>
+                            ` : ''}
+
+                            <div class="text-[11px] text-gray-400 mt-1 flex items-center space-x-2">
+                                <i data-lucide="history" class="w-3 h-3 text-ios-subtext"></i>
+                                <span>Último: ${lastLog ? `${lastLog.weight}${appState.settings.unit} × ${lastLog.reps} reps` : 'Sin registros previas'}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="openLogModal('${exRef.id}', ${exRef.isPreExhaust || false})" class="px-3.5 py-2 bg-ios-accent hover:bg-red-600 rounded-xl text-xs font-bold text-white shadow-md flex items-center space-x-1">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                <span>Registrar</span>
+                            </button>
+                            <button onclick="openExerciseModal('${exRef.id}')" class="px-2.5 py-1 bg-ios-cardLight border border-ios-border rounded-lg text-[10px] text-ios-subtext hover:text-white">
+                                Ver Técnica
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += itemHtml;
+            });
+
+            lucide.createIcons();
+        }
+
+        function startWorkoutSession() {
+            appState.lastWorkoutTimestamp = Date.now();
+            saveToLocalStorage();
+            updateRecoveryStatus();
+            alert("¡Entrenamiento Heavy Duty Iniciado! Da el 100% en cada repetición hasta el fallo muscular estricto.");
+        }
+
+        // --- RENDER ROUTINES TAB ---
+        function renderRoutines() {
+            const container = document.getElementById('routines-container');
+            container.innerHTML = '';
+
+            appState.routines.forEach(rt => {
+                const isSelected = rt.id === appState.activeRoutineId;
+                const card = document.createElement('div');
+                card.className = `bg-ios-card border ${isSelected ? 'border-ios-accent shadow-lg shadow-ios-accent/10' : 'border-ios-border/60'} rounded-3xl p-5 space-y-3`;
+
+                let daysListHtml = rt.days.map((d, idx) => `
+                    <div class="bg-black/40 p-3 rounded-2xl border border-ios-border/30">
+                        <p class="text-xs font-bold text-ios-accent">${d.dayName}</p>
+                        <p class="text-[11px] text-ios-subtext mt-0.5">${d.exercises.length} ejercicios de alta intensidad</p>
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-base font-bold text-white">${rt.name}</h3>
+                            <p class="text-xs text-ios-subtext mt-1 leading-relaxed">${rt.description}</p>
+                        </div>
+                        ${isSelected ? '<span class="px-2.5 py-1 bg-ios-accent/20 text-ios-accent border border-ios-accent/40 text-[10px] font-bold rounded-full">Activa</span>' : ''}
+                    </div>
+                    <div class="space-y-2 pt-1">
+                        ${daysListHtml}
+                    </div>
+                    <button onclick="selectActiveRoutine('${rt.id}')" class="w-full py-2.5 bg-ios-cardLight border border-ios-border hover:border-ios-accent rounded-xl text-xs font-bold text-white transition">
+                        ${isSelected ? 'Rutina Seleccionada' : 'Usar Esta Rutina'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectActiveRoutine(routineId) {
+            appState.activeRoutineId = routineId;
+            appState.activeDayIndex = 0;
+            saveToLocalStorage();
+            renderRoutines();
+            renderActiveWorkout();
+            switchTab('tab-workout');
+        }
+
+        function openRoutineEditor() {
+            alert("El creador de rutinas personalizadas te permite añadir combinaciones de ejercicios de la biblioteca Heavy Duty.");
+        }
+
+        // --- RENDER EXERCISES & TECHNICAL GUIDE ---
+        function renderExercisesList() {
+            const container = document.getElementById('exercise-list-container');
+            container.innerHTML = '';
+
+            EXERCISES_DB.forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'exercise-item bg-ios-card border border-ios-border/60 rounded-2xl p-4 flex justify-between items-center cursor-pointer hover:border-ios-accent transition';
+                item.onclick = () => openExerciseModal(ex.id);
+                item.setAttribute('data-name', ex.name.toLowerCase());
+                item.setAttribute('data-muscle', ex.muscleGroup.toLowerCase());
+
+                item.innerHTML = `
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-ios-accent tracking-wider">${ex.muscleGroup}</span>
+                        <h4 class="text-sm font-bold text-white">${ex.name}</h4>
+                        <p class="text-xs text-ios-subtext">Enfoque: ${ex.primaryMuscle}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-ios-cardLight border border-ios-border flex items-center justify-center text-ios-subtext">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+            lucide.createIcons();
+        }
+
+        function filterExercises() {
+            const query = document.getElementById('exercise-search').value.toLowerCase();
+            document.querySelectorAll('.exercise-item').forEach(item => {
+                const name = item.getAttribute('data-name');
+                const muscle = item.getAttribute('data-muscle');
+                if (name.includes(query) || muscle.includes(query)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        // --- MODAL: ANATOMICAL SVG TECHNICAL GUIDE ---
+        function openExerciseModal(exId) {
+            const ex = EXERCISES_DB.find(e => e.id === exId);
+            if (!ex) return;
+
+            document.getElementById('modal-ex-title').textContent = ex.name;
+            document.getElementById('modal-ex-category').textContent = ex.muscleGroup;
+            document.getElementById('modal-ex-mentzer-tip').textContent = `"${ex.mentzerTip}"`;
+
+            // Steps
+            const stepsUl = document.getElementById('modal-ex-steps');
+            stepsUl.innerHTML = ex.steps.map(s => `<li>${s}</li>`).join('');
+
+            // Mistakes
+            const mistakesUl = document.getElementById('modal-ex-mistakes');
+            mistakesUl.innerHTML = ex.mistakes.map(m => `<li>${m}</li>`).join('');
+
+            // Render Dynamic Interactive SVG Diagram
+            renderAnatomicalSVG(ex.svgType, ex.primaryMuscle);
+
+            document.getElementById('exercise-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeExerciseModal() {
+            document.getElementById('exercise-modal').classList.add('hidden');
+        }
+
+        function renderAnatomicalSVG(svgType, primaryName) {
+            const container = document.getElementById('anatomical-diagram-container');
+            
+            // Clean vector anatomical diagram
+            let svgContent = '';
+
+            if (svgType === 'chest-fly' || svgType === 'chest-press') {
+                svgContent = `
+                <svg viewBox="0 0 200 200" class="h-full">
+                    <!-- Body Silhouette -->
+                    <path d="M70,40 Q100,30 130,40 L145,80 L130,170 L70,170 L55,80 Z" fill="#2c2c2e" stroke="#38383a" stroke-width="2"/>
+                    <!-- Head -->
+                    <circle cx="100" cy="25" r="15" fill="#2c2c2e" stroke="#38383a" stroke-width="2"/>
+                    <!-- Primary Muscle: Chest (Red) -->
+                    <path d="M75,55 Q100,50 125,55 Q115,85 100,85 Q85,85 75,55 Z" fill="#ff453a" opacity="0.9" />
+                    <!-- Secondary Muscle: Shoulders/Triceps (Gold) -->
+                    <circle cx="65" cy="58" r="8" fill="#ffd60a" opacity="0.8"/>
+                    <circle cx="135" cy="58" r="8" fill="#ffd60a" opacity="0.8"/>
+                </svg>`;
+            } else if (svgType === 'upper-pull' || svgType === 'back-pull') {
+                svgContent = `
+                <svg viewBox="0 0 200 200" class="h-full">
+                    <!-- Body Silhouette Back -->
+                    <path d="M65,40 Q100,30 135,40 L150,85 L125,170 L75,170 L50,85 Z" fill="#2c2c2e" stroke="#38383a" stroke-width="2"/>
+                    <circle cx="100" cy="25" r="15" fill="#2c2c2e" stroke="#38383a" stroke-width="2"/>
+                    <!-- Primary Muscle: Lats Back (Red) -->
+                    <path d="M70,60 Q100,70 130,60 L140,110 Q100,125 60,110 Z" fill="#ff453a" opacity="0.9" />
+                    <!-- Secondary: Arms/Biceps (Gold) -->
+                    <path d="M52,70 Q45,100 55,120" stroke="#ffd60a" stroke-width="8" stroke-linecap="round"/>
+                    <path d="M148,70 Q155,100 145,120" stroke="#ffd60a" stroke-width="8" stroke-linecap="round"/>
+                </svg>`;
+            } else if (svgType === 'legs') {
+                svgContent = `
+                <svg viewBox="0 0 200 200" class="h-full">
+                    <!-- Lower Body -->
+                    <path d="M70,20 L130,20 L140,90 L125,180 L105,180 L100,100 L95,100 L75,180 L60,180 L60,90 Z" fill="#2c2c2e" stroke="#38383a" stroke-width="2"/>
+                    <!-- Primary: Quadriceps (Red) -->
+                    <path d="M70,30 L95,30 L95,95 L68,90 Z" fill="#ff453a" opacity="0.9"/>
+                    <path d="M105,30 L130,30 L132,90 L105,95 Z" fill="#ff453a" opacity="0.9"/>
+                    <!-- Secondary: Glutes/Hamstrings (Gold) -->
+                    <rect x="70" y="20" width="60" height="15" fill="#ffd60a" opacity="0.8" rx="4"/>
+                </svg>`;
+            } else { // Full body or fallback
+                svgContent = `
+                <svg viewBox="0 0 200 200" class="h-full">
+                    <circle cx="100" cy="30" r="15" fill="#ff453a"/>
+                    <path d="M70,50 L130,50 L125,170 L75,170 Z" fill="#2c2c2e" stroke="#ff453a" stroke-width="3"/>
+                </svg>`;
+            }
+
+            container.innerHTML = svgContent;
+        }
+
+        // --- LOGGING WORKOUT SET ---
+        function openLogModal(exId, isPreExhaust = false) {
+            const ex = EXERCISES_DB.find(e => e.id === exId);
+            document.getElementById('log-exercise-id').value = exId;
+            document.getElementById('log-modal-ex-name').textContent = ex ? ex.name : exId;
+
+            // Pre-fill previous weight/reps if available
+            const lastLog = getLastLogForExercise(exId);
+            if (lastLog) {
+                document.getElementById('log-weight').value = lastLog.weight;
+                document.getElementById('log-reps').value = lastLog.reps;
+            } else {
+                document.getElementById('log-weight').value = '';
+                document.getElementById('log-reps').value = '';
+            }
+
+            const badge = document.getElementById('preexhaust-badge');
+            if (isPreExhaust) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            document.getElementById('log-set-modal').classList.remove('hidden');
+        }
+
+        function closeLogModal() {
+            document.getElementById('log-set-modal').classList.add('hidden');
+        }
+
+        function saveLoggedSet(event) {
+            event.preventDefault();
+
+            const exId = document.getElementById('log-exercise-id').value;
+            const weight = parseFloat(document.getElementById('log-weight').value);
+            const reps = parseInt(document.getElementById('log-reps').value);
+            const forced = parseInt(document.getElementById('log-forced').value) || 0;
+            const negatives = parseInt(document.getElementById('log-negatives').value) || 0;
+            const cadence = document.getElementById('log-cadence').value || '4-2-2';
+            const notes = document.getElementById('log-notes').value;
+
+            const newLog = {
+                id: 'log-' + Date.now(),
+                exerciseId: exId,
+                timestamp: Date.now(),
+                weight,
+                reps,
+                forcedReps: forced,
+                negativeReps: negatives,
+                cadence,
+                notes,
+                unit: appState.settings.unit
+            };
+
+            appState.history.push(newLog);
+            appState.lastWorkoutTimestamp = Date.now();
+            saveToLocalStorage();
+
+            closeLogModal();
+            renderActiveWorkout();
+            updateRecoveryStatus();
+
+            alert("Serie única registrada correctamente. ¡Excelente intensidad!");
+        }
+
+        function getLastLogForExercise(exId) {
+            const logs = appState.history.filter(l => l.exerciseId === exId);
+            if (logs.length === 0) return null;
+            return logs[logs.length - 1];
+        }
+
+        // --- STATS & CHARTING ---
+        let chartInstance = null;
+
+        function populateChartExerciseSelect() {
+            const select = document.getElementById('chart-exercise-select');
+            select.innerHTML = '';
+            EXERCISES_DB.forEach(ex => {
+                const opt = document.createElement('option');
+                opt.value = ex.id;
+                opt.textContent = ex.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function updateStatsUI() {
+            document.getElementById('kpi-workouts').textContent = appState.history.length;
+
+            // Calculate overall force progress
+            if (appState.history.length >= 2) {
+                const first = appState.history[0];
+                const last = appState.history[appState.history.length - 1];
+                const firstScore = first.weight * first.reps;
+                const lastScore = last.weight * last.reps;
+                const diffPct = Math.round(((lastScore - firstScore) / firstScore) * 100);
+                document.getElementById('kpi-progress').textContent = `${diffPct >= 0 ? '+' : ''}${diffPct}%`;
+            } else {
+                document.getElementById('kpi-progress').textContent = '+0%';
+            }
+
+            renderHistoryLogs();
+            updateProgressChart();
+        }
+
+        function renderHistoryLogs() {
+            const container = document.getElementById('history-logs-container');
+            container.innerHTML = '';
+
+            if (appState.history.length === 0) {
+                container.innerHTML = `<p class="text-xs text-ios-subtext italic">No hay series registradas aún.</p>`;
+                return;
+            }
+
+            // Reverse list to show recent first
+            const logsCopy = [...appState.history].reverse();
+            logsCopy.forEach(log => {
+                const ex = EXERCISES_DB.find(e => e.id === log.exerciseId) || { name: log.exerciseId };
+                const dateStr = new Date(log.timestamp).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+                const item = document.createElement('div');
+                item.className = 'bg-ios-card p-3 rounded-2xl border border-ios-border/60 flex justify-between items-center text-xs';
+                item.innerHTML = `
+                    <div>
+                        <span class="text-[10px] text-ios-subtext">${dateStr}</span>
+                        <h4 class="font-bold text-white">${ex.name}</h4>
+                        <p class="text-ios-gold font-mono">${log.weight} ${log.unit || 'kg'} × ${log.reps} reps al fallo</p>
+                        ${log.notes ? `<p class="text-[10px] text-gray-400 italic mt-0.5">"${log.notes}"</p>` : ''}
+                    </div>
+                    <div class="text-right space-y-1">
+                        <span class="px-2 py-0.5 bg-ios-accent/20 text-ios-accent border border-ios-accent/30 text-[10px] rounded-md font-bold inline-block">Cadencia ${log.cadence}</span>
+                        ${log.forcedReps ? `<p class="text-[10px] text-ios-subtext">+${log.forcedReps} forzadas</p>` : ''}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateProgressChart() {
+            const selectExId = document.getElementById('chart-exercise-select').value;
+            const filteredLogs = appState.history.filter(l => l.exerciseId === selectExId);
+
+            const ctx = document.getElementById('progressChart').getContext('2d');
+
+            const labels = filteredLogs.map(l => new Date(l.timestamp).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }));
+            const dataWeights = filteredLogs.map(l => l.weight);
+            const dataReps = filteredLogs.map(l => l.reps);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length ? labels : ['Sin datos'],
+                    datasets: [
+                        {
+                            label: `Peso (${appState.settings.unit})`,
+                            data: dataWeights.length ? dataWeights : [0],
+                            borderColor: '#ff453a',
+                            backgroundColor: 'rgba(255, 69, 58, 0.15)',
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Reps al Fallo',
+                            data: dataReps.length ? dataReps : [0],
+                            borderColor: '#ffd60a',
+                            backgroundColor: 'transparent',
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#8e8e93', font: { size: 10 } }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#ff453a', font: { size: 10 } }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#ffd60a', font: { size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#ffffff', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
